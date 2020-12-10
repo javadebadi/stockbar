@@ -1,4 +1,4 @@
-from bar import Bar, BarNotFoundException, TestBar
+from .bar import Bar, BarNotFoundException, TestBar
 
 class PriceBar(Bar):
     def _errorMessagePriceComparison(self, price_1, price_2):
@@ -60,6 +60,12 @@ class PriceBar(Bar):
         if not self._doesPrevExist():
             return None
         return True if self.close >= self.prev.close else False
+    
+    def isCloseDown(self):
+        if self.prev is not None:
+            return not self.isCloseUp()
+        else:
+            return None
 
     def diffCloseHigh(self):
         """difference of High price and close price, if this difference
@@ -81,19 +87,36 @@ class PriceBar(Bar):
     def isHigherHigh(self):
         return True if self.high >= self.prev.high else False
 
+    def isLowerHigh(self):
+        return not self.isHigherHigh()
+
     def isHigherLow(self):
         return True if self.low >= self.prev.low else False
+
+    def isLowerLow(self):
+        return not self.isHigherLow()
 
     def isUp(self):
         return self.isCloseUp() and self.isHigherHigh() and self.isHigherLow()
 
+    def isDown(self):
+        return self.isCloseDown() and self.isLowerHigh() and self.isLowerLow()
+
     def nDaysWasUpTrending(self):
         currentBar = self
-        number_of_up_traing_days = 0
+        number_of_ternding_days = 0
         while currentBar.isUp():
-            number_of_up_traing_days += 1
+            number_of_ternding_days += 1
             currentBar = currentBar.prev
-        return number_of_up_traing_days
+        return number_of_ternding_days
+
+    def nDaysWasDownTrending(self):
+        currentBar = self
+        number_of_ternding_days = 0
+        while currentBar.isDown():
+            number_of_ternding_days += 1
+            currentBar = currentBar.prev
+        return number_of_ternding_days
 
 
     def __str__(self):
