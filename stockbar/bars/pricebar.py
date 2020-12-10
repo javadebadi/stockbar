@@ -78,6 +78,24 @@ class PriceBar(Bar):
     def isCloseNearLow(self, threshold=0.02):
         return True if (self.diffCloseLow() / self.close) < threshold else False
         
+    def isHigherHigh(self):
+        return True if self.high >= self.prev.high else False
+
+    def isHigherLow(self):
+        return True if self.low >= self.prev.low else False
+
+    def isUp(self):
+        return self.isCloseUp() and self.isHigherHigh() and self.isHigherLow()
+
+    def nDaysWasUpTrending(self):
+        currentBar = self
+        number_of_up_traing_days = 0
+        while currentBar.isUp():
+            number_of_up_traing_days += 1
+            currentBar = currentBar.prev
+        return number_of_up_traing_days
+
+
     def __str__(self):
         result = super().__str__() + "\n"
         return result
@@ -149,6 +167,21 @@ class TestPriceBar(TestBar):
         self.n_test += 1
         return True
 
+    def test_number_of_days_the_bar_was_upTrending(self):
+        bar_1 = PriceBar(low=50, high=100, open_=60, close=70)
+        bar_2 = PriceBar(low=60, high=110, open_=70, close=80, prev=bar_1)
+        bar_3 = PriceBar(low=70, high=120, open_=80, close=90, prev=bar_2)
+        bar_4 = PriceBar(low=80, high=130, open_=90, close=100, prev=bar_3)
+        bar_5 = PriceBar(low=100, high=120, open_=105, close=105, prev=bar_4)
+        assert(int(bar_1.nDaysWasUpTrending()) == 0)
+        assert(int(bar_2.nDaysWasUpTrending()) == 1)
+        assert(int(bar_3.nDaysWasUpTrending()) == 2)
+        assert(int(bar_4.nDaysWasUpTrending()) == 3)
+        assert(int(bar_5.nDaysWasUpTrending()) == 0)
+        self.n_test += 1
+        return True
+
+
     def testAll(self):
         test_result = super().testAll()
         test_result = test_result and self.test_isOpenUp()
@@ -159,6 +192,7 @@ class TestPriceBar(TestBar):
         test_result = test_result and self.test_is_close_near_to_high()
         test_result = test_result and self.test_difference_of_close_and_low()
         test_result = test_result and self.test_is_close_near_to_low()
+        test_result = test_result and self.test_number_of_days_the_bar_was_upTrending()
         return test_result
 
 if __name__ == "__main__":
